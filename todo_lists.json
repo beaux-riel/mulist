@@ -1,0 +1,22 @@
+[
+  {
+    "name": "List A",
+    "tasks": [
+      {
+        "task": "Task A",
+        "done_status": true,
+        "id": 1,
+        "date_added": "2024-08-29T07:27:15.120967-07:00",
+        "deadline": null
+      },
+      {
+        "task": "Task B",
+        "done_status": false,
+        "id": 2,
+        "date_added": "2024-08-29T07:27:18.151058-07:00",
+        "deadline": null
+      }
+    ],
+    "new_task": ""
+  }
+]
