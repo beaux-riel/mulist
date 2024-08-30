@@ -1,7 +1,8 @@
 use std::{sync::atomic::{AtomicU64, self}};
-use chrono::{DateTime, Local};
+use chrono::{DateTime, Local, TimeZone};
 use egui::{self, Ui};
 use serde::{Serialize, Deserialize};
+
 
 // Define a global atomic counter for unique task IDs
 static UNIQUE_ID: AtomicU64 = AtomicU64::new(1);
@@ -9,12 +10,14 @@ static UNIQUE_ID: AtomicU64 = AtomicU64::new(1);
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Task {
     task: String,
-    done_status: bool,  // This field will be controlled by the toggle
+    done_status: bool,
     id: u64,
     date_added: DateTime<Local>,
-    deadline: Option<DateTime<Local>>, // Optional deadline
+    deadline: Option<DateTime<Local>>,
     #[serde(skip)]
-    show_options: bool, // Track whether options are shown
+    show_options: bool,
+    #[serde(skip)]
+    deadline_input: String, // Add this field to capture the user's deadline input
 }
 
 impl Task {
@@ -50,7 +53,8 @@ impl List {
             id: UNIQUE_ID.fetch_add(1, atomic::Ordering::SeqCst),
             date_added: Local::now(),
             deadline: None,
-            show_options: false, // Initialize show_options to false
+            show_options: false,
+            deadline_input: String::new(), // Initialize the deadline_input as an empty string
         };
         self.tasks.push(task);
         self.new_task.clear(); // Clear the input after adding the task
@@ -137,18 +141,18 @@ pub fn run_gui(ui: &mut Ui, app: &mut ListApp) {
             if list.show_options {
                                     
                 ui.horizontal(|ui| {
-                    ui.with_layout(egui::Layout::left_to_right(egui::Align::Center), |ui| {
-                    ui.label("Display Options:");
-                    ui.checkbox(&mut list.display_id_title, "ID Title");
-                    ui.checkbox(&mut list.display_id, "ID");
-                    ui.checkbox(&mut list.display_name_title, "Name Title");
-                    ui.checkbox(&mut list.display_name, "Name");
-
-                    // Add more checkboxes for other fields
-
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                         if ui.button("Delete List").clicked() {
                             lists_to_remove.push(list_index); // Mark this list for removal
                         }
+
+                        // Reversing the order here so they appear in the intended left-to-right order when aligned to the right
+                        ui.checkbox(&mut list.display_name, "Name");
+                        ui.checkbox(&mut list.display_name_title, "Name Title");
+                        ui.checkbox(&mut list.display_id, "ID");
+                        ui.checkbox(&mut list.display_id_title, "ID Title");
+
+                        ui.label("Display Options:");
                     });
                 });
             }
@@ -212,9 +216,19 @@ pub fn run_gui(ui: &mut Ui, app: &mut ListApp) {
                         ui.label("Rename:");
                         ui.text_edit_singleline(&mut task.task);
 
+                        ui.label("Set Deadline (YYYY-MM-DD HH:MM):");
+                        ui.text_edit_singleline(&mut task.deadline_input);
+
                         if ui.button("Set Deadline").clicked() {
-                            let deadline = Local::now() + chrono::Duration::days(7);
-                            task.set_deadline(deadline);
+                            if let Ok(naive_deadline) = chrono::NaiveDateTime::parse_from_str(&task.deadline_input, "%Y-%m-%d %H:%M") {
+                                if let Some(parsed_deadline) = Local.from_local_datetime(&naive_deadline).single() {
+                                    task.set_deadline(parsed_deadline);
+                                } else {
+                                    ui.label("Invalid date/time, cannot determine the timezone.");
+                                }
+                            } else {
+                                ui.label("Invalid date format. Use YYYY-MM-DD HH:MM.");
+                            }
                         }
 
                         if ui.button("Delete").clicked() {
@@ -222,7 +236,7 @@ pub fn run_gui(ui: &mut Ui, app: &mut ListApp) {
                         }
                     });
                 }
-            }
+                            }
 
             // Remove tasks after the loop
             for &index in tasks_to_remove.iter().rev() {

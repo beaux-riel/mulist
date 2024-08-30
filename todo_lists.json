@@ -18,5 +18,39 @@
       }
     ],
     "new_task": ""
+  },
+  {
+    "name": "MuList Dev Tasks",
+    "tasks": [
+      {
+        "task": "Styling updates",
+        "done_status": false,
+        "id": 1,
+        "date_added": "2024-08-29T21:21:06.179461-07:00",
+        "deadline": null
+      },
+      {
+        "task": "Light/Dark mode",
+        "done_status": false,
+        "id": 2,
+        "date_added": "2024-08-29T21:21:11.356117-07:00",
+        "deadline": null
+      },
+      {
+        "task": "Ability to set deadline",
+        "done_status": false,
+        "id": 3,
+        "date_added": "2024-08-29T21:21:17.058498-07:00",
+        "deadline": null
+      },
+      {
+        "task": "Ability to add notes",
+        "done_status": false,
+        "id": 4,
+        "date_added": "2024-08-29T21:21:25.300678-07:00",
+        "deadline": null
+      }
+    ],
+    "new_task": ""
   }
 ]
